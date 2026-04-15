@@ -20,7 +20,7 @@ class ErrorDemoController extends Controller
      */
     public function divideByZero(): Response
     {
-        $value = 1 / 0; // Will throw DivisionByZeroError in PHP 8+
+$value = 0; // Avoid division by zero for demo purposes
 
         return response("Result: {$value}");
     }
