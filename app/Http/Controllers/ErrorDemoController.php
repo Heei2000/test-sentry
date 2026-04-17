@@ -17,9 +17,10 @@ class ErrorDemoController extends Controller
 
     /**
      * Trigger a DivisionByZeroError.
-     */
-    public function divideByZero(): Response
-    {
+        $a = 0;
+        $value = 10 / $a;
+
+        return response("Result: {$value}");
         $a = 0;
         $value = 10 / $a;
 
