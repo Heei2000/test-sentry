@@ -21,7 +21,7 @@ class ErrorDemoController extends Controller
     public function divideByZero(): Response
     {
         $a = 0;
-        $value = $a / 0; // Will throw DivisionByZeroError in PHP 8+
+        $value = $a !== 0 ? $a / 0 : INF; // Return infinity when dividing by zero
 
         return response("Result: {$value}");
     }
