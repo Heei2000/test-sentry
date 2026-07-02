@@ -28,17 +28,17 @@ class BusinessErrorController extends Controller
             ['price' => 0.2, 'qty' => 2],
         ];
 
-        $total = 0.0;
+        $total = '0';
         foreach ($items as $item) {
-            $total += $item['price'] * $item['qty'];
+            $total = bcadd($total, bcmul((string)$item['price'], (string)$item['qty'], 2), 2);
         }
 
         // 0.1*3 + 0.2*2 在浮点计算中不等于 0.7
         $expected = 0.70;
-        if ($total !== $expected) {
+        if (bccomp($total, (string)$expected, 2) !== 0) {
             throw new \RuntimeException(
                 sprintf(
-                    'Order amount mismatch: calculated=%.17f, expected=%.2f. ' .
+                    'Order amount mismatch: calculated=%s, expected=%.2f. ' .
                     'Floating-point precision error in price accumulation.',
                     $total,
                     $expected
