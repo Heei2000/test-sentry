@@ -35,7 +35,7 @@ class BusinessErrorController extends Controller
 
         // 0.1*3 + 0.2*2 在浮点计算中不等于 0.7
         $expected = 0.70;
-        if ($total !== $expected) {
+        if (bccomp((string)$total, (string)$expected, 2) !== 0) {
             throw new \RuntimeException(
                 sprintf(
                     'Order amount mismatch: calculated=%.17f, expected=%.2f. ' .
