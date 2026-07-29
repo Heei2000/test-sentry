@@ -28,13 +28,14 @@ class BusinessErrorController extends Controller
             ['price' => 0.2, 'qty' => 2],
         ];
 
-        $total = 0.0;
+        $total = '0.00';
         foreach ($items as $item) {
-            $total += $item['price'] * $item['qty'];
+            $total = bcadd($total, bcmul((string)$item['price'], (string)$item['qty'], 2), 2);
         }
 
         // 0.1*3 + 0.2*2 在浮点计算中不等于 0.7
-        $expected = 0.70;
+        $expected = '0.70';
+        if (bccomp($total, $expected, 2) !== 0) {
         if ($total !== $expected) {
             throw new \RuntimeException(
                 sprintf(
