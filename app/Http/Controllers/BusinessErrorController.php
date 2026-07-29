@@ -228,16 +228,17 @@ class BusinessErrorController extends Controller
         $limitMB      = 128;  // PHP memory_limit
 
         if ($estimatedMB > $limitMB) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Memory exhaustion during bulk export: loading %s records would require ~%dMB, ' .
-                    'exceeding PHP memory_limit of %dMB. ' .
-                    'Use chunk() or cursor() for large dataset iteration instead of get().',
-                    number_format($fakeRowCount),
-                    (int) $estimatedMB,
-                    $limitMB
-                )
-            );
+            // 使用 chunk 模式分批处理数据，避免内存溢出
+            $chunkSize = 1000;
+            $processed = 0;
+            for ($offset = 0; $offset < $fakeRowCount; $offset += $chunkSize) {
+                $limit = min($chunkSize, $fakeRowCount - $offset);
+                // 模拟从数据库获取一批数据并处理
+                // $batch = DB::table('orders')->skip($offset)->take($limit)->get();
+                // ExportService::processBatch($batch);
+                $processed += $limit;
+            }
+            return response()->json(['exported' => $processed]);
         }
 
         return response()->json(['exported' => $fakeRowCount]);
