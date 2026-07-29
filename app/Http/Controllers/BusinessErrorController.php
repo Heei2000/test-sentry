@@ -59,10 +59,10 @@ class BusinessErrorController extends Controller
         $username = $request->query('username', "admin' OR '1'='1");
 
         // 危险写法：直接拼接用户输入到 SQL
-        $sql = "SELECT * FROM users WHERE username = '" . $username . "' LIMIT 1";
+$sql = "SELECT * FROM users WHERE username = ? LIMIT 1";
 
         try {
-            $result = DB::select($sql);
+$result = DB::select($sql, [$username]);
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 'SQL query failed due to unescaped user input: ' . $e->getMessage() .
