@@ -252,8 +252,7 @@ class BusinessErrorController extends Controller
     {
         // 模拟 100 个用户，每个用户在循环内各自查一次订单
         $userCount      = 100;
-        $queriesPerUser = 1;
-        $totalQueries   = 1 + ($userCount * $queriesPerUser);  // 1(users) + 100(orders)
+        $totalQueries   = 2;  // 1(users) + 1(orders with eager loading via with('orders'))
         $thresholdMs    = 500;
         $actualMs       = $totalQueries * 8;  // 模拟每次查询 ~8ms
 
