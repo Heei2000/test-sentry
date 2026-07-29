@@ -166,15 +166,7 @@ class BusinessErrorController extends Controller
 
         // 缺少 owner 校验，直接返回了别人的数据
         if ($requestedOrder['user_id'] !== $currentUserId) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Unauthorized access: user %d attempted to access order %d owned by user %d. ' .
-                    'Missing ownership check — horizontal privilege escalation vulnerability.',
-                    $currentUserId,
-                    $requestedOrder['id'],
-                    $requestedOrder['user_id']
-                )
-            );
+            abort(403, 'Unauthorized access.');
         }
 
         return response()->json($requestedOrder);
