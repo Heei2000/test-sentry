@@ -193,24 +193,25 @@ class BusinessErrorController extends Controller
         // 模拟 cache miss 且没有防击穿机制
         $cached = Cache::get($cacheKey);
         if ($cached === null) {
-            // 模拟并发时 DB 连接数耗尽
-            $concurrentRequests = 150;  // 实际场景中可从监控获取
-            if ($concurrentRequests > 100) {
-                throw new \RuntimeException(
-                    sprintf(
-                        'Cache stampede on key "%s": %d concurrent requests hit the database simultaneously. ' .
-                        'DB connection pool exhausted (max=100). ' .
-                        'Missing mutex lock or soft-expiry strategy on hot cache key.',
-                        $cacheKey,
-                        $concurrentRequests
-                    )
-                );
+            $lock = Cache::lock('lock_' . $cacheKey, 10);
+
+            if ($lock->get()) {
+                // 双重检查
+                $cached = Cache::get($cacheKey);
+                if ($cached === null) {
+                    $cached = ['id' => $productId, 'name' => 'Hot Product', 'stock' => 0];
+                    Cache::put($cacheKey, $cached, 60);
+                }
+                $lock->release();
+            } else {
+                // 未获取到锁,等待后重试或回退默认值
+                usleep(100000); // 100ms
+                $cached = Cache::get($cacheKey);
+                if ($cached === null) {
+                    $cached = ['id' => $productId, 'name' => 'Hot Product', 'stock' => 0];
+                }
             }
-
-            $cached = ['id' => $productId, 'name' => 'Hot Product', 'stock' => 0];
-            Cache::put($cacheKey, $cached, 60);
         }
-
         return response()->json($cached);
     }
 
