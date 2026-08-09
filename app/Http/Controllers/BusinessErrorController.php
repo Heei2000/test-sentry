@@ -85,20 +85,17 @@ class BusinessErrorController extends Controller
         $orderId = $request->query('order_id', 'ORD-20240101-8888');
         $amount  = (float) $request->query('amount', 299.00);
 
-        // 模拟：没有幂等检查，缓存中已存在处理记录
         $cacheKey = 'payment_processed_' . $orderId;
+
+        // 幂等检查：如果已处理，直接返回成功，避免重复扣款和业务异常
         if (Cache::has($cacheKey)) {
             $existing = Cache::get($cacheKey);
-            throw new \RuntimeException(
-                sprintf(
-                    'Duplicate payment detected for order %s: ' .
-                    'already charged %.2f at %s. ' .
-                    'Missing idempotency check before processing payment callback.',
-                    $orderId,
-                    $existing['amount'],
-                    $existing['charged_at']
-                )
-            );
+            return response()->json([
+                'status' => 'already_charged',
+                'order_id' => $orderId,
+                'amount' => $existing['amount'],
+                'charged_at' => $existing['charged_at'],
+            ]);
         }
 
         // 第一次处理：记录到缓存（模拟入库）
@@ -106,21 +103,6 @@ class BusinessErrorController extends Controller
             'amount'     => $amount,
             'charged_at' => now()->toDateTimeString(),
         ], 60);
-
-        // 模拟第二次回调（Sentry 告警场景：支付网关重试触发重复扣款）
-        if (Cache::has($cacheKey)) {
-            $existing = Cache::get($cacheKey);
-            throw new \RuntimeException(
-                sprintf(
-                    'Duplicate payment detected for order %s: ' .
-                    'already charged %.2f at %s. ' .
-                    'Missing idempotency check before processing payment callback.',
-                    $orderId,
-                    $existing['amount'],
-                    $existing['charged_at']
-                )
-            );
-        }
 
         return response()->json(['status' => 'charged', 'order_id' => $orderId]);
     }
