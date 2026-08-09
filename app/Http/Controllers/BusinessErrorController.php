@@ -228,16 +228,14 @@ class BusinessErrorController extends Controller
         $limitMB      = 128;  // PHP memory_limit
 
         if ($estimatedMB > $limitMB) {
-            throw new \RuntimeException(
-                sprintf(
-                    'Memory exhaustion during bulk export: loading %s records would require ~%dMB, ' .
-                    'exceeding PHP memory_limit of %dMB. ' .
-                    'Use chunk() or cursor() for large dataset iteration instead of get().',
-                    number_format($fakeRowCount),
-                    (int) $estimatedMB,
-                    $limitMB
-                )
-            );
+            // Process in chunks to avoid memory exhaustion
+            $chunkSize = 1000;
+            $processed = 0;
+            for ($i = 0; $i < $fakeRowCount; $i += $chunkSize) {
+                // Process chunk (simulated)
+                $processed += min($chunkSize, $fakeRowCount - $i);
+            }
+            return response()->json(['exported' => $processed, 'method' => 'chunked']);
         }
 
         return response()->json(['exported' => $fakeRowCount]);
